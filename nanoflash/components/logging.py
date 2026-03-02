@@ -11,7 +11,7 @@ from torch.utils.tensorboard import SummaryWriter
 class TrainingLogger:
     """Log metrics to console and TensorBoard events."""
 
-    def __init__(self, log_dir: Optional[str] = None, log_every_n_steps: int = 10):
+    def __init__(self, log_dir: Optional[str] = None, log_every_n_steps: int = 1):
         self.log_dir = Path(log_dir) if log_dir else None
         self.log_every_n_steps = log_every_n_steps
         self._writer: Optional[SummaryWriter] = None

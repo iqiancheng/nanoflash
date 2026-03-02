@@ -9,7 +9,6 @@ train:
   dtype: bf16
   seed: 42
   output_dir: ./output/qwen3_0.6b
-  log_every_n_steps: 10
   gradient_accumulation_steps: 2
   num_workers: 0
 

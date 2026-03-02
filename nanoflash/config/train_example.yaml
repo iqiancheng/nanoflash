@@ -6,7 +6,6 @@ train:
   dtype: bf16
   seed: 42
   output_dir: ./output
-  log_every_n_steps: 10
 
 model:
   class_path: nanoflash.components.model.load_causal_lm

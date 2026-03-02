@@ -30,7 +30,6 @@ class SFTRecipe:
         self.max_steps = train_cfg.get("max_steps", 10000)
         self.seed = train_cfg.get("seed", 42)
         self.output_dir = train_cfg.get("output_dir", "./output")
-        self.log_every_n_steps = train_cfg.get("log_every_n_steps", 10)
         self.gradient_accumulation_steps = train_cfg.get("gradient_accumulation_steps", 1)
         self.num_workers = train_cfg.get("num_workers", 0)
 
@@ -127,10 +126,7 @@ class SFTRecipe:
             self._logger = build(cfg.logging)
         else:
             from nanoflash.components.logging import TrainingLogger
-            self._logger = TrainingLogger(
-                log_dir=f"{self.output_dir}/tensorboard",
-                log_every_n_steps=self.log_every_n_steps,
-            )
+            self._logger = TrainingLogger(log_dir=f"{self.output_dir}/tensorboard")
 
     def train(self) -> None:
         self._model.train()
@@ -165,7 +161,7 @@ class SFTRecipe:
 
             self._step += 1
 
-            if self._logger and self._step % self.log_every_n_steps == 0:
+            if self._logger:
                 self._logger.log(self._step, {"loss": accum_loss})
 
             if self._checkpointer and self._checkpointer.should_save(self._step):

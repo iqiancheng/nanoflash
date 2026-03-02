@@ -67,13 +67,13 @@ Use normal English; same style across files and YAML.
 | `loss` | Optional. `class_path` + kwargs. |
 | `collate_fn` | Optional. `class_path` + kwargs for the collate callable. |
 | `checkpoint` | Optional. Save/load: `class_path` + kwargs (e.g. `checkpoint_dir`, `save_every_n_steps`). |
-| `logging` | Optional. Logger: `class_path` + kwargs (e.g. `log_dir`, `log_every_n_steps`). |
+| `logging` | Optional. Logger: `class_path` + kwargs (e.g. `log_dir`, `log_every_n_steps` default 1). |
 
 All “component” nodes (model, data, optimizer, loss, etc.) use the same pattern: **`class_path`** (dotted path to class or factory) + other keys as kwargs.
 
 ### 4.2 Naming Conventions in YAML
 
-- Use **snake_case** for keys: `batch_size`, `max_steps`, `log_every_n_steps`, `model_name_or_path`.
+- Use **snake_case** for keys: `batch_size`, `max_steps`, `model_name_or_path`.
 - Use **dotted paths** for `class_path`: `torch.optim.AdamW`, `mypackage.models.MyModel`, `mypackage.data.get_train_dataset`.
 - No `_target_` in the YAML; the loader converts `class_path` → `_target_` before calling Hydra (see below).
 
@@ -87,7 +87,6 @@ train:
   dtype: bf16
   seed: 42
   output_dir: ./output
-  log_every_n_steps: 10
 
 model:
   class_path: mypackage.models.ExampleModel
@@ -225,7 +224,7 @@ checkpoint:
 
 - **Files / dirs**: `config`, `core`, `pipeline`, `train.py`; files like `config.py`, `instantiate.py`, `recipe.py`, `run.py`. Names read like normal English.
 - **Config keys**: `project`, `recipe`, `train`, `model`, `data`, `data_val`, `optimizer`, `lr_scheduler`, `loss`, `collate_fn`, `checkpoint`, `logging`. All snake_case.
-- **Train subkeys**: `batch_size`, `max_steps`, `device`, `dtype`, `seed`, `output_dir`, `log_every_n_steps`, etc. — standard, unabbreviated.
+- **Train subkeys**: `batch_size`, `max_steps`, `device`, `dtype`, `seed`, `output_dir`, etc. — standard, unabbreviated.
 - **Component key**: always `class_path` in YAML (converted to `_target_` only internally before Hydra).
 
 ---
