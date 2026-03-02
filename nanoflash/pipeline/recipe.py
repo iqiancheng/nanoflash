@@ -51,7 +51,7 @@ class SFTRecipe:
 
         if cfg.get("checkpoint"):
             self._checkpointer = build(cfg.checkpoint)
-            if cfg.get("data", {}).get("tokenizer") and getattr(self._checkpointer, "hf_output_dir", None):
+            if cfg.get("data", {}).get("tokenizer"):
                 tokenizer = build(cfg.data.tokenizer)
                 self._checkpointer.set_tokenizer(tokenizer)
         else:

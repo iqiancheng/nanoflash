@@ -33,5 +33,4 @@ loss:
 checkpoint:
   class_path: nanoflash.core.checkpoint.Checkpointer
   checkpoint_dir: ${train.output_dir}/ckpt
-  hf_output_dir: ${train.output_dir}/hf
   save_every_n_steps: 1000

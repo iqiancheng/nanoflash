@@ -17,14 +17,12 @@ class Checkpointer:
         self,
         checkpoint_dir: str,
         save_every_n_steps: int = 1000,
-        hf_output_dir: Optional[str] = None,
         model: Optional[torch.nn.Module] = None,
         optimizer: Optional[torch.optim.Optimizer] = None,
         **kwargs,
     ):
         self.checkpoint_dir = Path(checkpoint_dir)
         self.save_every_n_steps = save_every_n_steps
-        self.hf_output_dir = Path(hf_output_dir) if hf_output_dir else None
         self._model = model
         self._optimizer = optimizer
         self._tokenizer = None
@@ -39,22 +37,21 @@ class Checkpointer:
         self._tokenizer = tokenizer
 
     def _latest_step_dir(self) -> Optional[Path]:
-        """Find step_* dir with max step. Fallback to root for legacy checkpoint.pt."""
+        """Find step_* dir with max step."""
         if not self.checkpoint_dir.exists():
             return None
         step_dirs = [d for d in self.checkpoint_dir.iterdir() if d.is_dir() and d.name.startswith("step_")]
-        if step_dirs:
-            steps = []
-            for d in step_dirs:
-                try:
-                    steps.append((int(d.name.split("_")[1]), d))
-                except (IndexError, ValueError):
-                    pass
-            if steps:
-                return max(steps, key=lambda x: x[0])[1]
-        if (self.checkpoint_dir / "checkpoint.pt").exists():
-            return self.checkpoint_dir
-        return None
+        if not step_dirs:
+            return None
+        steps = []
+        for d in step_dirs:
+            try:
+                steps.append((int(d.name.split("_")[1]), d))
+            except (IndexError, ValueError):
+                pass
+        if not steps:
+            return None
+        return max(steps, key=lambda x: x[0])[1]
 
     def load(self) -> dict[str, Any]:
         """Load checkpoint if exists. Returns dict with model_state, opt_state, step."""
@@ -62,10 +59,10 @@ class Checkpointer:
         load_dir = self._latest_step_dir()
         if load_dir is None:
             return result
-        ckpt_path = load_dir / "checkpoint.pt"
-        if not ckpt_path.exists():
+        state_path = load_dir / "state.pt"
+        if not state_path.exists():
             return result
-        data = torch.load(ckpt_path, map_location="cpu", weights_only=True)
+        data = torch.load(state_path, map_location="cpu", weights_only=True)
         result["model_state"] = data.get("model_state")
         result["opt_state"] = data.get("opt_state")
         result["step"] = data.get("step", 0)
@@ -73,7 +70,7 @@ class Checkpointer:
         return result
 
     def save(self, step: int) -> None:
-        """Save model, optimizer, step to step_{step}/. Optionally save HF format."""
+        """Save to checkpoint_dir/step_{step}/: state.pt (resume) + HF format (model, tokenizer)."""
         step_dir = self.checkpoint_dir / f"step_{step}"
         step_dir.mkdir(parents=True, exist_ok=True)
         data = {
@@ -81,14 +78,11 @@ class Checkpointer:
             "model_state": self._model.state_dict() if self._model else None,
             "opt_state": self._optimizer.state_dict() if self._optimizer else None,
         }
-        torch.save(data, step_dir / "checkpoint.pt")
-
-        if self.hf_output_dir and self._model and hasattr(self._model, "save_pretrained"):
-            hf_step_dir = self.hf_output_dir / f"step_{step}"
-            hf_step_dir.mkdir(parents=True, exist_ok=True)
-            self._model.save_pretrained(str(hf_step_dir), safe_serialization=True)
+        torch.save(data, step_dir / "state.pt")
+        if self._model and hasattr(self._model, "save_pretrained"):
+            self._model.save_pretrained(str(step_dir), safe_serialization=True)
             if self._tokenizer is not None and hasattr(self._tokenizer, "save_pretrained"):
-                self._tokenizer.save_pretrained(str(hf_step_dir))
+                self._tokenizer.save_pretrained(str(step_dir))
 
     def should_save(self, step: int) -> bool:
         return step > 0 and step % self.save_every_n_steps == 0

@@ -66,7 +66,7 @@ Use normal English; same style across files and YAML.
 | `lr_scheduler` | Optional. `class_path` + kwargs. |
 | `loss` | Optional. `class_path` + kwargs. |
 | `collate_fn` | Optional. `class_path` + kwargs for the collate callable. |
-| `checkpoint` | Optional. Save/load: `class_path` + kwargs (e.g. `checkpoint_dir`, `save_every_n_steps`). |
+| `checkpoint` | Optional. Save/load: `class_path` + kwargs (e.g. `checkpoint_dir`, `save_every_n_steps`). Saves to `checkpoint_dir/step_{step}/` both state.pt (resume) and HF format (model, tokenizer). |
 | `logging` | Optional. Logger: `class_path` + kwargs (e.g. `log_dir`, `log_every_n_steps` default 1). |
 
 All “component” nodes (model, data, optimizer, loss, etc.) use the same pattern: **`class_path`** (dotted path to class or factory) + other keys as kwargs.
