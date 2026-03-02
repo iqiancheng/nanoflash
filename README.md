@@ -6,10 +6,10 @@ Minimal training framework driven by a single YAML config. Uses OmegaConf, Hydra
 
 ```bash
 # From project root (ensure PYTHONPATH includes project root)
-python -m nanoflash.train --config nanoflash/config/qwen3_1.7b.yaml
+python -m train --config nanoflash/config/qwen3_0.6b.yaml
 
 # Override config via CLI
-python -m nanoflash.train --config nanoflash/config/qwen3_1.7b.yaml train.batch_size=8 train.max_steps=500
+python -m train --config nanoflash/config/qwen3_0.6b.yaml train.batch_size=8 train.max_steps=500
 ```
 
 ## Requirements

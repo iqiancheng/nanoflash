@@ -3,8 +3,8 @@
 Nanoflash training entrypoint.
 
 Usage:
-    python -m nanoflash.train --config nanoflash/config/qwen3_1.7b.yaml
-    python -m nanoflash.train --config config.yaml train.batch_size=16
+    python -m train --config nanoflash/config/qwen3_0.6b.yaml
+    python -m train --config config.yaml train.batch_size=16
 """
 import sys
 
