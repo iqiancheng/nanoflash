@@ -1,0 +1,57 @@
+# Nanoflash config for Qwen/Qwen3-0.6B SFT on Nvidia GPU
+# Model: https://huggingface.co/Qwen/Qwen3-0.6B
+# Dataset: yahma/alpaca-cleaned (Alpaca-style instruction tuning)
+
+train:
+  batch_size: 4
+  max_steps: 1000
+  device: cuda
+  dtype: bf16
+  seed: 42
+  output_dir: ./output/qwen3_0.6b
+  log_every_n_steps: 10
+  gradient_accumulation_steps: 1
+  num_workers: 0
+
+model:
+  class_path: nanoflash.components.model.load_causal_lm
+  model_name_or_path: Qwen/Qwen3-0.6B
+  torch_dtype: bf16
+  device_map: auto
+
+data:
+  class_path: nanoflash.components.dataset.load_alpaca_dataset
+  source: yahma/alpaca-cleaned
+  max_length: 2048
+  split: train
+  train_on_input: true
+  tokenizer:
+    class_path: nanoflash.components.tokenizer.load_tokenizer
+    model_name_or_path: ${model.model_name_or_path}
+    max_length: 2048
+
+optimizer:
+  class_path: torch.optim.AdamW
+  lr: 2.0e-5
+  weight_decay: 0.01
+
+lr_scheduler:
+  class_path: transformers.get_cosine_schedule_with_warmup
+  num_warmup_steps: 100
+
+loss:
+  class_path: torch.nn.CrossEntropyLoss
+  ignore_index: -100
+
+collate_fn:
+  class_path: nanoflash.components.collate.causal_lm_collate
+
+checkpoint:
+  class_path: nanoflash.core.checkpoint.Checkpointer
+  checkpoint_dir: ${train.output_dir}/ckpt
+  save_every_n_steps: 500
+
+logging:
+  class_path: nanoflash.components.logging.TrainingLogger
+  log_dir: ${train.output_dir}/logs
+  log_every_n_steps: 10

@@ -1,0 +1,37 @@
+# Minimal example config (see design.md)
+train:
+  batch_size: 8
+  max_steps: 10000
+  device: cuda
+  dtype: bf16
+  seed: 42
+  output_dir: ./output
+  log_every_n_steps: 10
+
+model:
+  class_path: nanoflash.components.model.load_causal_lm
+  model_name_or_path: Qwen/Qwen3-1.7B
+  torch_dtype: bf16
+
+data:
+  class_path: nanoflash.components.dataset.load_alpaca_dataset
+  source: yahma/alpaca-cleaned
+  max_length: 2048
+  tokenizer:
+    class_path: nanoflash.components.tokenizer.load_tokenizer
+    model_name_or_path: ${model.model_name_or_path}
+    max_length: 2048
+
+optimizer:
+  class_path: torch.optim.AdamW
+  lr: 1.0e-5
+  weight_decay: 0.01
+
+loss:
+  class_path: torch.nn.CrossEntropyLoss
+  ignore_index: -100
+
+checkpoint:
+  class_path: nanoflash.core.checkpoint.Checkpointer
+  checkpoint_dir: ${train.output_dir}/ckpt
+  save_every_n_steps: 1000

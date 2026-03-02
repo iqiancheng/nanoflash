@@ -1,0 +1,5 @@
+torch>=2.0
+transformers>=4.40
+datasets>=2.14
+omegaconf>=2.3
+hydra-core>=1.3
