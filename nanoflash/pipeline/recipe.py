@@ -147,10 +147,11 @@ class SFTRecipe:
 
                 device = next(self._model.parameters()).device if getattr(self._model, "hf_device_map", None) else self.device
                 batch = {k: v.to(device) for k, v in batch.items()}
-                outputs = self._model(**batch)
-                logits = outputs.logits.view(-1, outputs.logits.size(-1))
-                labels = batch["labels"].view(-1).to(logits.device)
-                loss = self._loss_fn(logits, labels)
+                model_inputs = {"input_ids": batch["input_ids"], "attention_mask": batch["attention_mask"]}
+                outputs = self._model(**model_inputs)
+                shift_logits = outputs.logits[..., :-1, :].contiguous().view(-1, outputs.logits.size(-1))
+                shift_labels = batch["labels"][..., 1:].contiguous().view(-1).to(shift_logits.device)
+                loss = self._loss_fn(shift_logits, shift_labels)
                 (loss / accum_steps).backward()
                 accum_loss += loss.item() / accum_steps
 

@@ -3,14 +3,14 @@
 # Dataset: yahma/alpaca-cleaned (Alpaca-style instruction tuning)
 
 train:
-  batch_size: 4
+  batch_size: 2
   max_steps: 1000
   device: cuda
   dtype: bf16
   seed: 42
   output_dir: ./output/qwen3_0.6b
   log_every_n_steps: 10
-  gradient_accumulation_steps: 1
+  gradient_accumulation_steps: 2
   num_workers: 0
 
 model:
@@ -18,6 +18,7 @@ model:
   model_name_or_path: Qwen/Qwen3-0.6B
   torch_dtype: bf16
   device_map: auto
+  gradient_checkpointing: true
 
 data:
   class_path: nanoflash.components.dataset.load_alpaca_dataset
