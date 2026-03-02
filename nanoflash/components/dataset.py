@@ -26,7 +26,11 @@ def _load_dataset_fallback(source: str, split: str, **kwargs):
     return ds_full[split] if split in ds_full else list(ds_full.values())[0]
 
 
-def _tokenize_alpaca(example, tokenizer, max_length: int, train_on_input: bool):
+_tokenizer_ref = None
+
+
+def _tokenize_alpaca(example, max_length: int, train_on_input: bool):
+    tokenizer = _tokenizer_ref
     instruction = example.get("instruction", "")
     inp = example.get("input", "")
     output = example.get("output", "")
@@ -79,8 +83,10 @@ def load_alpaca_dataset(
         else:
             raise
 
+    global _tokenizer_ref
+    _tokenizer_ref = tokenizer
     ds = ds.map(
-        partial(_tokenize_alpaca, tokenizer=tokenizer, max_length=max_length, train_on_input=train_on_input),
+        partial(_tokenize_alpaca, max_length=max_length, train_on_input=train_on_input),
         remove_columns=ds.column_names,
         num_proc=1,
     )
