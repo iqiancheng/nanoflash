@@ -147,7 +147,7 @@ class SFTRecipe:
 
                 device = next(self._model.parameters()).device if getattr(self._model, "hf_device_map", None) else self.device
                 batch = {k: v.to(device) for k, v in batch.items()}
-                model_inputs = {"input_ids": batch["input_ids"], "attention_mask": batch["attention_mask"]}
+                model_inputs = {"input_ids": batch["input_ids"], "attention_mask": batch["attention_mask"], "use_cache": False}
                 outputs = self._model(**model_inputs)
                 shift_logits = outputs.logits[..., :-1, :].contiguous().view(-1, outputs.logits.size(-1))
                 shift_labels = batch["labels"][..., 1:].contiguous().view(-1).to(shift_logits.device)

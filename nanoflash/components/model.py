@@ -30,7 +30,7 @@ def load_causal_lm(
 
     model = AutoModelForCausalLM.from_pretrained(
         model_name_or_path,
-        torch_dtype=torch_dtype,
+        dtype=torch_dtype,
         device_map=device_map,
         trust_remote_code=trust_remote_code,
         **kwargs,
