@@ -1,9 +1,28 @@
 """
 Alpaca-style SFT dataset loader.
 """
+import json
+import urllib.request
 from typing import Any
 
 from datasets import load_dataset
+
+
+def _load_dataset_fallback(source: str, split: str, **kwargs):
+    """Fallback when load_dataset fails with fsspec glob error (datasets<2.19 + fsspec)."""
+    r = urllib.request.urlopen(
+        f"https://datasets-server.huggingface.co/parquet?dataset={source}"
+    )
+    data = json.loads(r.read().decode())
+    urls = [f["url"] for f in data.get("parquet_files", []) if f.get("split") == split]
+    if not urls:
+        urls = [f["url"] for f in data.get("parquet_files", [])]
+    if not urls:
+        raise ValueError(
+            f"Could not load {source} via fallback. Upgrade datasets>=2.19.1 and huggingface_hub>=0.21.2 to fix."
+        )
+    ds_full = load_dataset("parquet", data_files=urls)
+    return ds_full[split] if split in ds_full else list(ds_full.values())[0]
 
 
 def load_alpaca_dataset(
@@ -20,7 +39,13 @@ def load_alpaca_dataset(
     Expects tokenizer with __call__ that accepts text and returns input_ids, attention_mask.
     Returns dataset with keys: input_ids, attention_mask, labels.
     """
-    ds = load_dataset(source, split=split, **kwargs)
+    try:
+        ds = load_dataset(source, split=split, **kwargs)
+    except ValueError as e:
+        if "Invalid pattern" in str(e) and "**" in str(e):
+            ds = _load_dataset_fallback(source, split, **kwargs)
+        else:
+            raise
 
     def tokenize(example):
         instruction = example.get("instruction", "")

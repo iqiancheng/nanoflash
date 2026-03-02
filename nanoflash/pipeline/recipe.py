@@ -58,7 +58,8 @@ class SFTRecipe:
         self._model = build(cfg.model)
         if self._model is None:
             raise ValueError("model is required in config")
-        self._model.to(self.device)
+        if getattr(self._model, "hf_device_map", None) is None:
+            self._model.to(self.device)
 
         ckpt = {}
         if self._checkpointer is not None:
@@ -144,12 +145,12 @@ class SFTRecipe:
                     train_iter = iter(self._train_loader)
                     batch = next(train_iter)
 
-                batch = {k: v.to(self.device) for k, v in batch.items()}
+                device = next(self._model.parameters()).device if getattr(self._model, "hf_device_map", None) else self.device
+                batch = {k: v.to(device) for k, v in batch.items()}
                 outputs = self._model(**batch)
-                loss = self._loss_fn(
-                    outputs.logits.view(-1, outputs.logits.size(-1)),
-                    batch["labels"].view(-1),
-                )
+                logits = outputs.logits.view(-1, outputs.logits.size(-1))
+                labels = batch["labels"].view(-1).to(logits.device)
+                loss = self._loss_fn(logits, labels)
                 (loss / accum_steps).backward()
                 accum_loss += loss.item() / accum_steps
 
