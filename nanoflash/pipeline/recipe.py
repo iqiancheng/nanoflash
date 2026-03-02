@@ -9,7 +9,7 @@ from omegaconf import DictConfig
 from torch.utils.data import DataLoader
 
 from nanoflash.components.collate import causal_lm_collate
-from nanoflash.core.instantiate import build
+from nanoflash.core.instantiate import build, resolve_target
 
 
 class SFTRecipe:
@@ -91,7 +91,7 @@ class SFTRecipe:
         else:
             self._lr_scheduler = None
 
-        collate_fn = build(cfg.collate_fn) if cfg.get("collate_fn") else None
+        collate_fn = resolve_target(cfg.collate_fn) if cfg.get("collate_fn") else None
         if collate_fn is None:
             collate_fn = causal_lm_collate
 

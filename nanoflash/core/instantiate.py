@@ -1,6 +1,7 @@
 """
 Convert class_path -> _target_, then build objects via Hydra instantiate.
 """
+import importlib
 import copy
 import os
 import sys
@@ -8,6 +9,25 @@ from typing import Any
 
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
+
+
+def resolve_target(cfg_node: Any) -> Any:
+    """
+    Resolve _target_/class_path to the callable without instantiating.
+    Use for collate_fn and similar pass-through callables.
+    """
+    if cfg_node is None:
+        return None
+    if not OmegaConf.is_dict(cfg_node):
+        return cfg_node
+    target = cfg_node.get("_target_") or cfg_node.get("class_path")
+    if target is None:
+        return cfg_node
+    if isinstance(target, str):
+        module_path, name = target.rsplit(".", 1)
+        mod = importlib.import_module(module_path)
+        return getattr(mod, name)
+    return target
 
 
 def resolve_class_path(cfg: Any) -> None:
