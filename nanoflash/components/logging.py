@@ -27,7 +27,7 @@ class TrainingLogger:
             else:
                 parts.append(f"{k}={v}")
         line = " ".join(parts)
-        print(line)
+        print(line, flush=True)
         if self.file_path:
             with open(self.file_path, "a") as f:
                 f.write(line + "\n")
