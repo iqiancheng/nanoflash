@@ -54,5 +54,5 @@ checkpoint:
 
 logging:
   class_path: nanoflash.components.logging.TrainingLogger
-  log_dir: ${train.output_dir}/logs
+  log_dir: ${train.output_dir}/tensorboard
   log_every_n_steps: 10

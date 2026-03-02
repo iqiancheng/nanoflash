@@ -128,7 +128,7 @@ class SFTRecipe:
         else:
             from nanoflash.components.logging import TrainingLogger
             self._logger = TrainingLogger(
-                log_dir=f"{self.output_dir}/logs",
+                log_dir=f"{self.output_dir}/tensorboard",
                 log_every_n_steps=self.log_every_n_steps,
             )
 
@@ -175,7 +175,8 @@ class SFTRecipe:
             self._checkpointer.save(self._step)
 
     def cleanup(self) -> None:
-        pass
+        if self._logger and hasattr(self._logger, "close"):
+            self._logger.close()
 
 
 RECIPES = {"default": SFTRecipe, "sft": SFTRecipe}
