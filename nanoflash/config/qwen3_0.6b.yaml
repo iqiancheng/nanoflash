@@ -17,7 +17,6 @@ model:
   class_path: nanoflash.components.model.load_causal_lm
   model_name_or_path: Qwen/Qwen3-0.6B
   torch_dtype: bf16
-  device_map: auto
   gradient_checkpointing: true
 
 data:
