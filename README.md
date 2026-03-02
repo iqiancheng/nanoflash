@@ -50,4 +50,4 @@ This prepends the path to `sys.path` so `class_path` can import from that tree.
 - **New loss/dataset**: Implement the class or factory, then set `class_path` in YAML. No code change in nanoflash.
 - **New recipe**: Implement a class with `__init__`, `setup`, `train`, `cleanup`; register in `nanoflash.pipeline.recipe.RECIPES`; set `recipe: your_name` in YAML.
 
-See `design.md` for full design.
+See [design.md](docs/design.md) for full design. [Usage](docs/usage.md) for usage guide.
