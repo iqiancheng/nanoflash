@@ -17,21 +17,26 @@ class Checkpointer:
         self,
         checkpoint_dir: str,
         save_every_n_steps: int = 1000,
+        hf_output_dir: Optional[str] = None,
         model: Optional[torch.nn.Module] = None,
         optimizer: Optional[torch.optim.Optimizer] = None,
         **kwargs,
     ):
         self.checkpoint_dir = Path(checkpoint_dir)
         self.save_every_n_steps = save_every_n_steps
+        self.hf_output_dir = Path(hf_output_dir) if hf_output_dir else None
         self._model = model
         self._optimizer = optimizer
-        self._step = 0
+        self._tokenizer = None
 
     def set_model(self, model: torch.nn.Module) -> None:
         self._model = model
 
     def set_optimizer(self, optimizer: torch.optim.Optimizer) -> None:
         self._optimizer = optimizer
+
+    def set_tokenizer(self, tokenizer) -> None:
+        self._tokenizer = tokenizer
 
     def load(self) -> dict[str, Any]:
         """Load checkpoint if exists. Returns dict with model_state, opt_state, step."""
@@ -47,7 +52,7 @@ class Checkpointer:
         return result
 
     def save(self, step: int) -> None:
-        """Save model, optimizer, step."""
+        """Save model, optimizer, step. Optionally save HF format (config + model + tokenizer)."""
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         data = {
             "step": step,
@@ -55,6 +60,12 @@ class Checkpointer:
             "opt_state": self._optimizer.state_dict() if self._optimizer else None,
         }
         torch.save(data, self.checkpoint_dir / "checkpoint.pt")
+
+        if self.hf_output_dir and self._model and hasattr(self._model, "save_pretrained"):
+            self.hf_output_dir.mkdir(parents=True, exist_ok=True)
+            self._model.save_pretrained(str(self.hf_output_dir), safe_serialization=True)
+            if self._tokenizer is not None and hasattr(self._tokenizer, "save_pretrained"):
+                self._tokenizer.save_pretrained(str(self.hf_output_dir))
 
     def should_save(self, step: int) -> bool:
         return step > 0 and step % self.save_every_n_steps == 0
